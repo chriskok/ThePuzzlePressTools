@@ -17,25 +17,20 @@ def convert(data):
     else:
         return data
 
-def scrape_and_save(collection, category=None, results=120):
+def scrape_and_save(collection, category=None, results=120, pages=5):
     date = datetime.datetime.now().strftime("%Y-%m-%d")
-    filename = "{}-{}-{}".format(date, collection, category)
+    csv_filename = "data/{}-{}-{}".format(date, collection, category)
 
-    print("creating: {}".format(filename))
+    print("creating: {}".format(csv_filename))
 
-    scraped_array = play_scraper.collection(
-            collection=collection,
-            category=category,
-            results=results,
-            page=0)
+    scraped_array = []
 
-    # for page in range (1,5):
-    #     print(page)
-    #     scraped_array.extend(play_scraper.collection(
-    #             collection='TOP_FREE',
-    #             category='GAME_PUZZLE',
-    #             results=120,
-    #             page=page))
+    for page in range(pages):
+        scraped_array.extend(play_scraper.collection(
+                collection=collection,
+                category=category,
+                results=results,
+                page=page))
 
     app_ids = []
     for item in scraped_array:
@@ -54,9 +49,8 @@ def scrape_and_save(collection, category=None, results=120):
 
     csv_columns = app_details[0].keys()
 
-    csv_file = "GAME_PUZZLE.csv"
     try:
-        with open(csv_file, 'wb') as csvfile:
+        with open(csv_filename, 'wb') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
             for data in app_details:
@@ -65,7 +59,9 @@ def scrape_and_save(collection, category=None, results=120):
         print("I/O error") 
 
 def main():
-    scrape_and_save('TOP_FREE', category='GAME_PUZZLE', results=10)
+    for coll in my_list.COLLECTIONS.keys():
+        # for cat in my_list.CATEGORIES.keys():
+            scrape_and_save(coll, category="GAME_PUZZLE")
 
 if __name__ == '__main__':
     main()
