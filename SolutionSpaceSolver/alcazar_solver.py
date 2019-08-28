@@ -7,6 +7,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
  
 # This sets the WIDTH and HEIGHT of each grid location
 WIDTH = 40 
@@ -15,7 +16,9 @@ HEIGHT = 40
 # This sets the margin between each cell
 MARGIN = 10
 GRID_SIZE = 5
-BUTTON_HEIGHT = 100
+BOTTOM_DIVIDER_HEIGHT = 100
+
+BOTTOM_DIVIDER = HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN
 
 # Hamiltonian Cycle initializations
 board = ham_cycle.producePuzzleBoard(GRID_SIZE)
@@ -67,7 +70,7 @@ for row in range(GRID_SIZE + 1):
 pygame.init()
  
 # Set the WIDTH and HEIGHT of the screen
-WINDOW_SIZE = [WIDTH * GRID_SIZE + (GRID_SIZE+1) * MARGIN, HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN  + BUTTON_HEIGHT]
+WINDOW_SIZE = [WIDTH * GRID_SIZE + (GRID_SIZE+1) * MARGIN, HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN  + BOTTOM_DIVIDER_HEIGHT]
 screen = pygame.display.set_mode(WINDOW_SIZE)
  
 # Set title of screen
@@ -81,6 +84,7 @@ clock = pygame.time.Clock()
  
 # -------- Main Program Loop -----------
 solution_array = []
+remove_node_mode = False
 
 while not done:
     for event in pygame.event.get():  # User did something
@@ -90,17 +94,45 @@ while not done:
             # User clicks the mouse. Get the position
             pos = pygame.mouse.get_pos()
 
-            if (pos[1] > HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN):
-                # Reset Grid
-                for row in range(GRID_SIZE):
-                    for col in range(GRID_SIZE):
-                        grid[row][col] = 0
+            if (pos[1] > BOTTOM_DIVIDER):
+
+                # Change the x/y screen coordinates to grid coordinates
+                column = pos[0] // (WIDTH + MARGIN)
+                row = pos[1] // (HEIGHT + MARGIN)
+
+                if (column == 0):
+                    if(remove_node_mode):
+                        print("Remove Mode: OFF")
+                    else:
+                        print("Remove Mode: ON")
+                    remove_node_mode = not remove_node_mode
+
+                elif (column == 1):
+                    print("Resetting Grid...")
+                    # Reset Grid
+                    for row in range(GRID_SIZE):
+                        for col in range(GRID_SIZE):
+                            grid[row][col] = 0
+
+                    print('Hamiltonian Path In Progress...')
+                    try:
+                        solution_array = G.hamiltonian()
+                    except KeyError:
+                        print("Please enter a valid entrace or exit index.")
+
+                    if (solution_array is None):
+                        print("No solution found")
+                        solution_array = []
                     
-                print('Hamiltonian Path In Progress...')
-                try:
-                    solution_array = G.hamiltonian()
-                except KeyError:
-                    print("Please enter a valid entrace or exit index.")
+                elif (column == 2):
+                    print("Resetting Grid...")
+                    # Reset Grid
+                    for row in range(GRID_SIZE):
+                        for col in range(GRID_SIZE):
+                            grid[row][col] = 0
+                    
+
+                
             elif ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
                 row = pos[1] // (HEIGHT + MARGIN)
                 column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
@@ -108,14 +140,20 @@ while not done:
                 print("Click side", pos, "Grid coordinates: ", row, column)
                 if (side_grid[row][column] == 0):
                     side_grid[row][column] = 1
+                    if (column > 0):
+                        print("Making wall")
+                        cell1 = gridToNumber(row, column)
+                        cell2 = gridToNumber(row, column-1)
+                        G.removeEdges(cell1, cell2)
                 else:
                     side_grid[row][column] = 0
+                    if (column > 0):
+                        print("Removing wall")
+                        cell1 = gridToNumber(row, column)
+                        cell2 = gridToNumber(row, column-1)
+                        G.add(cell1, cell2)
                 
-                if (column > 0):
-                    print("Making wall")
-                    cell1 = gridToNumber(row, column)
-                    cell2 = gridToNumber(row, column-1)
-                    G.removeEdges(cell1, cell2)
+                
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
                 column = pos[0] // (WIDTH + MARGIN)
@@ -123,14 +161,19 @@ while not done:
                 print("Click bottom", pos, "Grid coordinates: ", row, column)
                 if (bottom_grid[row][column] == 0):
                     bottom_grid[row][column] = 1
+                    if (row > 0):
+                        print("Making wall")
+                        cell1 = gridToNumber(row, column)
+                        cell2 = gridToNumber(row-1, column)
+                        G.removeEdges(cell1, cell2)
                 else:
                     bottom_grid[row][column] = 0
+                    if (row > 0):
+                        print("Removing wall")
+                        cell1 = gridToNumber(row, column)
+                        cell2 = gridToNumber(row-1, column)
+                        G.add(cell1, cell2)
 
-                if (row > 0):
-                    print("Making wall")
-                    cell1 = gridToNumber(row, column)
-                    cell2 = gridToNumber(row-1, column)
-                    G.removeEdges(cell1, cell2)
             else:
                 # Change the x/y screen coordinates to grid coordinates
                 column = pos[0] // (WIDTH + MARGIN)
@@ -139,9 +182,14 @@ while not done:
                 # Set that location to one
                 print("Click ", pos, "Grid coordinates: ", row, column)
                 if (grid[row][column] == 0):
-                    grid[row][column] = 1
+                    if (remove_node_mode):
+                        grid[row][column] = 3
+                    else:
+                        grid[row][column] = 2
+                    cell = gridToNumber(row, column)
                 else:
                     grid[row][column] = 0
+                    cell = gridToNumber(row, column)
  
     # Set the screen background
     screen.fill(BLACK)
@@ -152,6 +200,10 @@ while not done:
             color = WHITE
             if grid[row][column] == 1:
                 color = GREEN
+            elif grid[row][column] == 2:
+                color = BLUE
+            elif grid[row][column] == 3:
+                color = RED
             pygame.draw.rect(screen,
                              color,
                              [(MARGIN + WIDTH) * column + MARGIN,
@@ -184,6 +236,10 @@ while not done:
                               (MARGIN + HEIGHT) * row,
                               WIDTH,
                               MARGIN])
+    
+    pygame.draw.rect(screen, (255,0,255), [MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
+    pygame.draw.rect(screen, (138,43,226), [(MARGIN + WIDTH) + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
+    pygame.draw.rect(screen, (128,0,128), [(MARGIN + WIDTH) * 2 + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
 
     if (len(solution_array) > 0):
         # print(solution_array)
