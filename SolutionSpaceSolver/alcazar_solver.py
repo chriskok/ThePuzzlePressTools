@@ -110,6 +110,7 @@ while not done:
                     print("Making wall")
                     cell1 = gridToNumber(row, column)
                     cell2 = gridToNumber(row, column-1)
+                    print("cells: {} {}".format(cell1, cell2))
                     G.removeEdges(cell1, cell2)
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
@@ -120,6 +121,13 @@ while not done:
                     bottom_grid[row][column] = 1
                 else:
                     bottom_grid[row][column] = 0
+
+                if (row > 0):
+                    print("Making wall")
+                    cell1 = gridToNumber(row, column)
+                    cell2 = gridToNumber(row-1, column)
+                    print("cells: {} {}".format(cell1, cell2))
+                    G.removeEdges(cell1, cell2)
             else:
                 # Change the x/y screen coordinates to grid coordinates
                 column = pos[0] // (WIDTH + MARGIN)
