@@ -78,7 +78,12 @@ class Graph(object):
                         result = [current] + result
                         break    
 
-        return result
+        # return result
+        if result is not None:
+            new_list = [int(str(i).split('-')[0]) for i in result]
+            return new_list
+        else:
+            return result
 
 def producePuzzleBoard(number):
     current_board = []
@@ -91,7 +96,7 @@ def producePuzzleBoard(number):
     
     return current_board
 
-def createNodes(graph, board, entrance_index, exit_index):
+def createNodes(graph, board, entrance_index=-1, exit_index=-1):
     board_size = len(board)
     row_index = 0
     for row in board:
@@ -109,7 +114,8 @@ def createNodes(graph, board, entrance_index, exit_index):
             col_index += 1
         row_index += 1
 
-    graph.add(entrance_index, exit_index)
+    if (entrance_index != -1 and exit_index != -1):
+        graph.add(entrance_index, exit_index)
 
 if __name__ == '__main__':
     

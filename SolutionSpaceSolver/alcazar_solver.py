@@ -1,9 +1,6 @@
-"""
- Sample Python/Pygame Programs
- Simpson College Computer Science
- http://programarcadegames.com/
-"""
+import ham_cycle
 import pygame
+import time
  
 # Define some colors
 BLACK = (0, 0, 0)
@@ -17,8 +14,21 @@ HEIGHT = 40
  
 # This sets the margin between each cell
 MARGIN = 10
-
 GRID_SIZE = 5
+BUTTON_HEIGHT = 100
+
+# Hamiltonian Cycle initializations
+board = ham_cycle.producePuzzleBoard(GRID_SIZE)
+G = ham_cycle.Graph() 
+ham_cycle.createNodes(G, board, 0, 24)
+
+
+def numberToGrid(number):
+    row = number // GRID_SIZE
+    column = number % GRID_SIZE
+
+    return row, column
+
 
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
@@ -51,8 +61,8 @@ for row in range(GRID_SIZE + 1):
 # Initialize pygame
 pygame.init()
  
-# Set the HEIGHT and WIDTH of the screen
-WINDOW_SIZE = [HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN , HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN]
+# Set the WIDTH and HEIGHT of the screen
+WINDOW_SIZE = [WIDTH * GRID_SIZE + (GRID_SIZE+1) * MARGIN, HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN  + BUTTON_HEIGHT]
 screen = pygame.display.set_mode(WINDOW_SIZE)
  
 # Set title of screen
@@ -65,6 +75,8 @@ done = False
 clock = pygame.time.Clock()
  
 # -------- Main Program Loop -----------
+solution_array = []
+
 while not done:
     for event in pygame.event.get():  # User did something
         if event.type == pygame.QUIT:  # If user clicked close
@@ -73,7 +85,13 @@ while not done:
             # User clicks the mouse. Get the position
             pos = pygame.mouse.get_pos()
 
-            if ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
+            if (pos[1] > HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN):
+                print('Hamiltonian Path In Progress...')
+                try:
+                    solution_array = G.hamiltonian()
+                except KeyError:
+                    print("Please enter a valid entrace or exit index.")
+            elif ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
                 row = pos[1] // (HEIGHT + MARGIN)
                 column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
 
@@ -143,6 +161,13 @@ while not done:
                               (MARGIN + HEIGHT) * row,
                               WIDTH,
                               MARGIN])
+
+    if (len(solution_array) > 0):
+        current_item = solution_array.pop(0)
+        current_item_row, current_item_col = numberToGrid(current_item)
+        grid[current_item_row][current_item_col] = 1
+        time.sleep(0.5)
+
  
     # Limit to 60 frames per second
     clock.tick(60)
