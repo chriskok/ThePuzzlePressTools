@@ -1,12 +1,7 @@
 """
- Example program to show using an array to back a grid on-screen.
- 
  Sample Python/Pygame Programs
  Simpson College Computer Science
  http://programarcadegames.com/
- http://simpson.edu/computer-science/
- 
- Explanation video: http://youtu.be/mdTeqiWyFnc
 """
 import pygame
  
@@ -34,7 +29,25 @@ for row in range(GRID_SIZE):
     grid.append([])
     for column in range(GRID_SIZE):
         grid[row].append(0)  # Append a cell
- 
+
+side_grid = []
+for row in range(GRID_SIZE):
+    side_grid.append([])
+    for column in range(GRID_SIZE + 1):
+        if (column == 0 or column == GRID_SIZE):
+            side_grid[row].append(1)
+        else:
+            side_grid[row].append(0)  # Append a cell
+
+bottom_grid = []
+for row in range(GRID_SIZE + 1):
+    bottom_grid.append([])
+    for column in range(GRID_SIZE):
+        if (row == 0 or row == GRID_SIZE):
+            bottom_grid[row].append(1)
+        else:
+            bottom_grid[row].append(0)  # Append a cell
+
 # Initialize pygame
 pygame.init()
  
@@ -59,20 +72,37 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # User clicks the mouse. Get the position
             pos = pygame.mouse.get_pos()
-            # Change the x/y screen coordinates to grid coordinates
-            column = pos[0] // (WIDTH + MARGIN)
-            row = pos[1] // (HEIGHT + MARGIN)
 
             if ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
-                print("Click ", pos, "Grid coordinates: ", row, column)
-                print("CLICKED SIDE")
+                row = pos[1] // (HEIGHT + MARGIN)
+                column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
+
+                print("Click side", pos, "Grid coordinates: ", row, column)
+                if (side_grid[row][column] == 0):
+                    side_grid[row][column] = 1
+                else:
+                    side_grid[row][column] = 0
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
-                print("Click ", pos, "Grid coordinates: ", row, column)
-                print("CLICKED BOTTOM")
+                row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
+                column = pos[0] // (WIDTH + MARGIN)
+
+                print("Click bottom", pos, "Grid coordinates: ", row, column)
+                if (bottom_grid[row][column] == 0):
+                    bottom_grid[row][column] = 1
+                else:
+                    bottom_grid[row][column] = 0
             else:
+                # Change the x/y screen coordinates to grid coordinates
+                column = pos[0] // (WIDTH + MARGIN)
+                row = pos[1] // (HEIGHT + MARGIN)
+
                 # Set that location to one
-                grid[row][column] = 1
+                # grid[row][column] = 1
                 print("Click ", pos, "Grid coordinates: ", row, column)
+                if (grid[row][column] == 0):
+                    grid[row][column] = 1
+                else:
+                    grid[row][column] = 0
  
     # Set the screen background
     screen.fill(BLACK)
@@ -93,8 +123,8 @@ while not done:
     for row in range(GRID_SIZE):
         for column in range(0, GRID_SIZE + 1):
             color = GREEN
-            # if grid[row][column] == 1:
-            #     color = RED                              
+            if side_grid[row][column] == 1:
+                color = RED                              
             pygame.draw.rect(screen,
                              color,
                              [(MARGIN + WIDTH) * column,
@@ -106,8 +136,8 @@ while not done:
     for row in range(0, GRID_SIZE + 1):
         for column in range(GRID_SIZE):
             color = GREEN
-            # if grid[row][column] == 1:
-            #     color = RED                              
+            if bottom_grid[row][column] == 1:
+                color = RED                              
             pygame.draw.rect(screen,
                              color,
                              [(MARGIN + WIDTH) * column + MARGIN,
