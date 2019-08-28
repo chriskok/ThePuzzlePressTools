@@ -7,6 +7,10 @@ class Vertex(object):
         self.i = node
         self.nodeList = list(nodeList)
 
+    def add(self, *nodeList):
+        # print('adding {} to {}'.format(list(nodeList), self.i))
+        self.nodeList.extend(list(nodeList))
+
     def __hash__(self):
         return self.i
 
@@ -18,8 +22,15 @@ class Vertex(object):
 
         return self.reaches(vertex.i)
 
+    def printEdges(self):
+        return "{}-{}".format(self.i, self.nodeList)
+
+    def printNode(self):
+        return str(self.i)
+
     def __str__(self):
-        return '< ' + str(self.i) + '>'
+        # return '< ' + str(self.i) + '>'
+        return self.printEdges()
 
     def __repr__(self):
         return self.__str__()
@@ -30,8 +41,14 @@ class Graph(object):
         self.vList = {}
 
     def add(self, node, *nodeList):
-        vertex = Vertex(node, *nodeList)
-        self.vList[node] = vertex
+        if (node in self.vList):
+            self.vList[node].add(*nodeList)
+        else:
+            vertex = Vertex(node, *nodeList)
+            self.vList[node] = vertex
+
+    def __str__(self):
+        return str(self.vList)
 
     def hamiltonian(self, current = None, pending = None, destiny = None):
         ''' Returns a list of nodes which represent
@@ -75,22 +92,24 @@ def producePuzzleBoard(number):
     return current_board
 
 def createNodes(graph, board, entrance_index, exit_index):
+    board_size = len(board)
     row_index = 0
     for row in board:
         col_index = 0
         for col in row:
             current_node = col
             if (row_index > 0):
-
-            # current_row = 
+                graph.add(current_node, board[row_index - 1][col_index]) # add top node
+            if (col_index < board_size - 1):
+                graph.add(current_node, board[row_index][col_index + 1]) # add right node
+            if (row_index < board_size - 1):
+                graph.add(current_node, board[row_index + 1][col_index]) # add bottom node
+            if (col_index > 0):
+                graph.add(current_node, board[row_index][col_index - 1]) # add left node
             col_index += 1
         row_index += 1
-    
-    G.add(1, 2)
-    G.add(2, 1)
-    G.add(2, 3)
-    G.add(3, 2, 4)
-    G.add(4, 3, 1)
+
+    graph.add(entrance_index, exit_index)
 
 if __name__ == '__main__':
     
@@ -98,10 +117,11 @@ if __name__ == '__main__':
 
     G = Graph() 
 
-    createNodes(G, puzzle_board, 0, 8)
 
-    # G.add(1, 2)
-    # G.add(2, 1, 3)
-    # G.add(3, 2, 4)
-    # G.add(4, 3)
-    print G.hamiltonian()
+    createNodes(G, puzzle_board, 0, 6)
+    print(G)
+
+    try:
+        print (G.hamiltonian())
+    except KeyError:
+        print("Please enter a valid entrace or exit index.")
