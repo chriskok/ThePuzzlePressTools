@@ -167,14 +167,14 @@ while not done:
                 print("Click side", pos, "Grid coordinates: ", row, column)
                 if (side_grid[row][column] == 0):
                     side_grid[row][column] = 1
-                    if (column > 0):
+                    if (column > 0 and column < GRID_SIZE):
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row, column-1)
                         print("Removing Edges: {} and {}".format(cell1, cell2))
                         G.removeEdges(cell1, cell2)
                 else:
                     side_grid[row][column] = 0
-                    if (column > 0):
+                    if (column > 0 and column < GRID_SIZE):
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row, column-1)
                         if(isNodeRemoved(row, column) or isNodeRemoved(row, column-1)):
@@ -190,14 +190,14 @@ while not done:
                 print("Click bottom", pos, "Grid coordinates: ", row, column)
                 if (bottom_grid[row][column] == 0):
                     bottom_grid[row][column] = 1
-                    if (row > 0):
+                    if (row > 0 and row < GRID_SIZE):
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row-1, column)
                         print("Removing Edges: {} and {}".format(cell1, cell2))
                         G.removeEdges(cell1, cell2)
                 else:
                     bottom_grid[row][column] = 0
-                    if (row > 0):
+                    if (row > 0 and row < GRID_SIZE):
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row-1, column)
                         if(isNodeRemoved(row, column) or isNodeRemoved(row-1, column)):
