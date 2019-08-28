@@ -108,7 +108,9 @@ while not done:
                 
                 if (column > 0):
                     print("Making wall")
-                    
+                    cell1 = gridToNumber(row, column)
+                    cell2 = gridToNumber(row, column-1)
+                    G.removeEdges(cell1, cell2)
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
                 column = pos[0] // (WIDTH + MARGIN)
