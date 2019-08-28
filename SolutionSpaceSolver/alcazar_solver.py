@@ -91,6 +91,11 @@ while not done:
             pos = pygame.mouse.get_pos()
 
             if (pos[1] > HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN):
+                # Reset Grid
+                for row in range(GRID_SIZE):
+                    for col in range(GRID_SIZE):
+                        grid[row][col] = 0
+                    
                 print('Hamiltonian Path In Progress...')
                 try:
                     solution_array = G.hamiltonian()
@@ -110,7 +115,6 @@ while not done:
                     print("Making wall")
                     cell1 = gridToNumber(row, column)
                     cell2 = gridToNumber(row, column-1)
-                    print("cells: {} {}".format(cell1, cell2))
                     G.removeEdges(cell1, cell2)
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
@@ -126,7 +130,6 @@ while not done:
                     print("Making wall")
                     cell1 = gridToNumber(row, column)
                     cell2 = gridToNumber(row-1, column)
-                    print("cells: {} {}".format(cell1, cell2))
                     G.removeEdges(cell1, cell2)
             else:
                 # Change the x/y screen coordinates to grid coordinates
@@ -183,10 +186,11 @@ while not done:
                               MARGIN])
 
     if (len(solution_array) > 0):
+        # print(solution_array)
         current_item = solution_array.pop(0)
         current_item_row, current_item_col = numberToGrid(current_item)
         grid[current_item_row][current_item_col] = 1
-        time.sleep(0.5)
+        time.sleep(0.2)
 
  
     # Limit to 60 frames per second
