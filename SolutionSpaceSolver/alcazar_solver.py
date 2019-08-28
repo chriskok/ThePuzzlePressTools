@@ -29,6 +29,11 @@ def numberToGrid(number):
 
     return row, column
 
+def gridToNumber(row, column):
+    number = row * GRID_SIZE + column
+
+    return number
+
 
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
@@ -100,6 +105,10 @@ while not done:
                     side_grid[row][column] = 1
                 else:
                     side_grid[row][column] = 0
+                
+                if (column > 0):
+                    print("Making wall")
+                    
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
                 column = pos[0] // (WIDTH + MARGIN)
@@ -136,6 +145,7 @@ while not done:
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
+
     # Draw the sides
     for row in range(GRID_SIZE):
         for column in range(0, GRID_SIZE + 1):

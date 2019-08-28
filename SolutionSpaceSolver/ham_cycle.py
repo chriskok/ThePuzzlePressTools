@@ -10,6 +10,10 @@ class Vertex(object):
     def add(self, *nodeList):
         # print('adding {} to {}'.format(list(nodeList), self.i))
         self.nodeList.extend(list(nodeList))
+    
+    def removeNode(self, node):
+        if node in self.nodeList:
+            self.nodeList.remove(node)
 
     def __hash__(self):
         return self.i
@@ -27,6 +31,9 @@ class Vertex(object):
 
     def printNode(self):
         return str(self.i)
+
+    def getAllEdges(self):
+        return [int(number) for number in self.nodeList]
 
     def __str__(self):
         # return '< ' + str(self.i) + '>'
@@ -46,6 +53,18 @@ class Graph(object):
         else:
             vertex = Vertex(node, *nodeList)
             self.vList[node] = vertex
+    
+    def removeNode(self, node):
+        if (node in self.vList):
+            print(self.vList[node])
+            for connected in self.vList[node].getAllEdges():
+                self.vList[connected].removeNode(node)
+            del self.vList[node]
+    
+    def removeEdges(self, node1, node2):
+        if (node1 in self.vList and node2 in self.vList):
+            self.vList[node1].removeNode(node2)
+            self.vList[node2].removeNode(node1)
 
     def __str__(self):
         return str(self.vList)
@@ -124,7 +143,13 @@ if __name__ == '__main__':
     G = Graph() 
 
 
-    createNodes(G, puzzle_board, 0, 6)
+    createNodes(G, puzzle_board, 1, 6)
+    print(G)
+
+    G.removeNode(0)
+    print(G)
+
+    G.removeEdges(1,4)
     print(G)
 
     try:
