@@ -25,19 +25,6 @@ board = ham_cycle.producePuzzleBoard(GRID_SIZE)
 G = ham_cycle.Graph() 
 ham_cycle.createNodes(G, board, 0, 24)
 
-
-def numberToGrid(number):
-    row = number // GRID_SIZE
-    column = number % GRID_SIZE
-
-    return row, column
-
-def gridToNumber(row, column):
-    number = row * GRID_SIZE + column
-
-    return number
-
-
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
 grid = []
@@ -82,6 +69,56 @@ done = False
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
  
+def numberToGrid(number):
+    row = number // GRID_SIZE
+    column = number % GRID_SIZE
+    return row, column
+
+def gridToNumber(row, column):
+    number = row * GRID_SIZE + column
+    return number
+
+def addNode(row_index, col_index):
+    global grid
+    global side_grid
+    global bottom_grid
+    global G
+    global GRID_SIZE
+
+    current_node = gridToNumber(row_index, col_index)
+
+    if (row_index > 0 and bottom_grid[row_index][col_index] != 1 and not isNodeRemoved(row_index - 1,col_index)):
+        G.add(current_node, gridToNumber(row_index - 1,col_index)) # add top node
+        G.add(gridToNumber(row_index - 1,col_index), current_node)
+    if (col_index < GRID_SIZE - 1 and side_grid[row_index][col_index + 1] != 1 and not isNodeRemoved(row_index,col_index + 1)):
+        G.add(current_node, gridToNumber(row_index,col_index + 1)) # add right node
+        G.add(gridToNumber(row_index,col_index + 1), current_node) # add right node
+    if (row_index < GRID_SIZE - 1 and bottom_grid[row_index + 1][col_index] != 1 and not isNodeRemoved(row_index + 1,col_index)):
+        G.add(current_node, gridToNumber(row_index + 1,col_index)) # add bottom node
+        G.add(gridToNumber(row_index + 1,col_index), current_node) # add bottom node
+    if (col_index > 0 and side_grid[row_index][col_index] != 1 and not isNodeRemoved(row_index,col_index - 1)):
+        G.add(current_node, gridToNumber(row_index,col_index - 1)) # add left node
+        G.add(gridToNumber(row_index,col_index - 1), current_node) # add left node
+
+def isNodeRemoved(row, col):
+    global grid
+    if (grid[row][col] == 3):
+        return True
+    else:
+        return False
+
+def resetGrid():
+    global grid
+    global GRID_SIZE
+    
+    print("Resetting Grid...")
+    # Reset Grid
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            if (grid[row][col] == 1):
+                grid[row][col] = 0
+
+
 # -------- Main Program Loop -----------
 solution_array = []
 remove_node_mode = False
@@ -108,11 +145,7 @@ while not done:
                     remove_node_mode = not remove_node_mode
 
                 elif (column == 1):
-                    print("Resetting Grid...")
-                    # Reset Grid
-                    for row in range(GRID_SIZE):
-                        for col in range(GRID_SIZE):
-                            grid[row][col] = 0
+                    resetGrid()
 
                     print('Hamiltonian Path In Progress...')
                     try:
@@ -125,14 +158,8 @@ while not done:
                         solution_array = []
                     
                 elif (column == 2):
-                    print("Resetting Grid...")
-                    # Reset Grid
-                    for row in range(GRID_SIZE):
-                        for col in range(GRID_SIZE):
-                            grid[row][col] = 0
-                    
+                    resetGrid()
 
-                
             elif ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
                 row = pos[1] // (HEIGHT + MARGIN)
                 column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
@@ -141,19 +168,21 @@ while not done:
                 if (side_grid[row][column] == 0):
                     side_grid[row][column] = 1
                     if (column > 0):
-                        print("Making wall")
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row, column-1)
+                        print("Removing Edges: {} and {}".format(cell1, cell2))
                         G.removeEdges(cell1, cell2)
                 else:
                     side_grid[row][column] = 0
                     if (column > 0):
-                        print("Removing wall")
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row, column-1)
-                        G.add(cell1, cell2)
-                
-                
+                        if(isNodeRemoved(row, column) or isNodeRemoved(row, column-1)):
+                            print("Node unavailable")
+                        else:
+                            print("Adding Edges: {} and {}".format(cell1, cell2))
+                            G.add(cell1, cell2)
+                               
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
                 row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
                 column = pos[0] // (WIDTH + MARGIN)
@@ -162,17 +191,20 @@ while not done:
                 if (bottom_grid[row][column] == 0):
                     bottom_grid[row][column] = 1
                     if (row > 0):
-                        print("Making wall")
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row-1, column)
+                        print("Removing Edges: {} and {}".format(cell1, cell2))
                         G.removeEdges(cell1, cell2)
                 else:
                     bottom_grid[row][column] = 0
                     if (row > 0):
-                        print("Removing wall")
                         cell1 = gridToNumber(row, column)
                         cell2 = gridToNumber(row-1, column)
-                        G.add(cell1, cell2)
+                        if(isNodeRemoved(row, column) or isNodeRemoved(row-1, column)):
+                            print("Node unavailable")
+                        else:
+                            print("Adding Edges: {} and {}".format(cell1, cell2))
+                            G.add(cell1, cell2)
 
             else:
                 # Change the x/y screen coordinates to grid coordinates
@@ -184,10 +216,18 @@ while not done:
                 if (grid[row][column] == 0):
                     if (remove_node_mode):
                         grid[row][column] = 3
+                        G.removeNode(gridToNumber(row,column))
+                        print(G)
                     else:
                         grid[row][column] = 2
                     cell = gridToNumber(row, column)
                 else:
+                    if (grid[row][column] == 3):
+                        addNode(row, column)
+                        print(G)
+                    elif (grid[row][column] == 2):
+                        print("do something")
+
                     grid[row][column] = 0
                     cell = gridToNumber(row, column)
  
