@@ -27,7 +27,7 @@ class Vertex(object):
         return self.reaches(vertex.i)
 
     def printEdges(self):
-        return "{}-{}".format(self.i, self.nodeList)
+        return "{}={}".format(self.i, self.nodeList)
 
     def printNode(self):
         return str(self.i)
@@ -56,7 +56,7 @@ class Graph(object):
     
     def removeNode(self, node):
         if (node in self.vList):
-            print(self.vList[node])
+            # print(self.vList[node])
             for connected in self.vList[node].getAllEdges():
                 self.vList[connected].removeNode(node)
             del self.vList[node]
@@ -75,7 +75,7 @@ class Graph(object):
         ''' 
         if pending is None:
             pending = self.vList.values()
-
+        
         result = None
 
         if current is None:
@@ -99,7 +99,7 @@ class Graph(object):
 
         # return result
         if result is not None:
-            new_list = [int(str(i).split('-')[0]) for i in result]
+            new_list = [int(str(i).split('=')[0]) for i in result]
             return new_list
         else:
             return result
@@ -144,13 +144,13 @@ if __name__ == '__main__':
 
 
     createNodes(G, puzzle_board, 1, 6)
-    print(G)
+    # print(G)
 
-    G.removeNode(0)
-    print(G)
+    # G.removeNode(0)
+    # print(G)
 
-    G.removeEdges(1,4)
-    print(G)
+    # G.removeEdges(1,4)
+    # print(G)
 
     try:
         print (G.hamiltonian())

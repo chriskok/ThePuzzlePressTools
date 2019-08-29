@@ -18,12 +18,12 @@ MARGIN = 10
 GRID_SIZE = 5
 BOTTOM_DIVIDER_HEIGHT = 100
 
-BOTTOM_DIVIDER = HEIGHT * GRID_SIZE + (GRID_SIZE+1) * MARGIN
+BOTTOM_DIVIDER = HEIGHT * GRID_SIZE + (GRID_SIZE + 1) * MARGIN
 
 # Hamiltonian Cycle initializations
 board = ham_cycle.producePuzzleBoard(GRID_SIZE)
 G = ham_cycle.Graph() 
-ham_cycle.createNodes(G, board, 0, 24)
+ham_cycle.createNodes(G, board)
 
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
@@ -118,10 +118,126 @@ def resetGrid():
             if (grid[row][col] == 1):
                 grid[row][col] = 0
 
+def addUndirectedEdge(graph, cell1, cell2):
+    graph.add(cell1, cell2)
+    graph.add(cell2, cell1)
+
 
 # -------- Main Program Loop -----------
 solution_array = []
-remove_node_mode = False
+REMOVE_NODE_MODE = True
+EXIT_NODES = []
+EXIT_NODE_COUNT = -1
+EXIT_NODE_DICT = {}
+
+def handleSideGrid(pos):
+    global EXIT_NODE_COUNT, EXIT_NODES, REMOVE_NODE_MODE, HEIGHT, MARGIN, WIDTH, GRID_SIZE, EXIT_NODE_DICT, side_grid, G
+    row = pos[1] // (HEIGHT + MARGIN)
+    column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
+
+    print("Click side", pos, "Grid coordinates: ", row, column)
+    # if the wall is currently inactive (there are edges between the two)
+    if (side_grid[row][column] == 0):
+        side_grid[row][column] = 1
+        if (column > 0 and column < GRID_SIZE):
+            cell1 = gridToNumber(row, column)
+            cell2 = gridToNumber(row, column-1)
+            print("Removing Edges: {} and {}".format(cell1, cell2))
+            G.removeEdges(cell1, cell2)
+        else:
+            exit_node_connection = 0
+            if (column == 0): exit_node_connection = row * GRID_SIZE
+            elif (column == GRID_SIZE): exit_node_connection = (row + 1) * GRID_SIZE - 1
+
+            if (exit_node_connection in EXIT_NODE_DICT):
+                print("Exit {} removed from {}".format(EXIT_NODE_DICT[exit_node_connection], exit_node_connection))
+                G.removeNode(EXIT_NODE_DICT[exit_node_connection])
+                EXIT_NODES.remove(EXIT_NODE_DICT[exit_node_connection])
+                del EXIT_NODE_DICT[exit_node_connection]
+            else:
+                print("No exit to remove")
+
+    # if the wall is currently active (there are no edges between the two)
+    else:
+        side_grid[row][column] = 0
+        if (column > 0 and column < GRID_SIZE):
+            cell1 = gridToNumber(row, column)
+            cell2 = gridToNumber(row, column-1)
+            if(isNodeRemoved(row, column) or isNodeRemoved(row, column-1)):
+                print("Node unavailable")
+            else:
+                print("Adding Edges: {} and {}".format(cell1, cell2))
+                G.add(cell1, cell2)
+        else:
+            exit_node_connection = 0
+            if (column == 0): exit_node_connection = row * GRID_SIZE
+            elif (column == GRID_SIZE): exit_node_connection = (row + 1) * GRID_SIZE - 1
+
+            if (exit_node_connection in EXIT_NODE_DICT):
+                print("Exit already there!")
+                bottom_grid[row][column] = 1
+            else:
+                print("Exit added to {}".format(exit_node_connection))
+                EXIT_NODE_DICT[exit_node_connection] = EXIT_NODE_COUNT
+                addUndirectedEdge(G, EXIT_NODE_COUNT, exit_node_connection)
+
+                for current_exit_node in EXIT_NODES:
+                    addUndirectedEdge(G, EXIT_NODE_COUNT, current_exit_node)
+                EXIT_NODES.append(EXIT_NODE_COUNT)
+                EXIT_NODE_COUNT -= 1
+
+def handleBottomGrid(pos):
+    global EXIT_NODE_COUNT, EXIT_NODES, REMOVE_NODE_MODE, HEIGHT, MARGIN, WIDTH, GRID_SIZE, EXIT_NODE_DICT, side_grid, G
+    row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
+    column = pos[0] // (WIDTH + MARGIN)
+
+    print("Click bottom", pos, "Grid coordinates: ", row, column)
+    if (bottom_grid[row][column] == 0):
+        bottom_grid[row][column] = 1
+        if (row > 0 and row < GRID_SIZE):
+            cell1 = gridToNumber(row, column)
+            cell2 = gridToNumber(row-1, column)
+            print("Removing Edges: {} and {}".format(cell1, cell2))
+            G.removeEdges(cell1, cell2)
+        else:
+            exit_node_connection = 0
+            if (row == 0): exit_node_connection = column
+            elif (row == GRID_SIZE): exit_node_connection = (row - 1) * GRID_SIZE + column
+
+            if (exit_node_connection in EXIT_NODE_DICT):
+                print("Exit {} removed from {}".format(EXIT_NODE_DICT[exit_node_connection], exit_node_connection))
+                G.removeNode(EXIT_NODE_DICT[exit_node_connection])
+                EXIT_NODES.remove(EXIT_NODE_DICT[exit_node_connection])
+                del EXIT_NODE_DICT[exit_node_connection]
+            else:
+                print("No exit to remove")
+    else:
+        bottom_grid[row][column] = 0
+        if (row > 0 and row < GRID_SIZE):
+            cell1 = gridToNumber(row, column)
+            cell2 = gridToNumber(row-1, column)
+            if(isNodeRemoved(row, column) or isNodeRemoved(row-1, column)):
+                print("Node unavailable")
+            else:
+                print("Adding Edges: {} and {}".format(cell1, cell2))
+                G.add(cell1, cell2)
+        else:
+            exit_node_connection = 0
+            if (row == 0): exit_node_connection = column
+            elif (row == GRID_SIZE): exit_node_connection = (row - 1) * GRID_SIZE + column
+
+            if (exit_node_connection in EXIT_NODE_DICT):
+                print("Exit already there!")
+                bottom_grid[row][column] = 1
+            else:
+                print("Exit added to {}".format(exit_node_connection))
+                EXIT_NODE_DICT[exit_node_connection] = EXIT_NODE_COUNT
+                addUndirectedEdge(G, EXIT_NODE_COUNT, exit_node_connection)
+
+                for current_exit_node in EXIT_NODES:
+                    addUndirectedEdge(G, EXIT_NODE_COUNT, current_exit_node)
+                EXIT_NODES.append(EXIT_NODE_COUNT)
+                EXIT_NODE_COUNT -= 1
 
 while not done:
     for event in pygame.event.get():  # User did something
@@ -131,6 +247,7 @@ while not done:
             # User clicks the mouse. Get the position
             pos = pygame.mouse.get_pos()
 
+            # CLICK BOTTOM SECTION
             if (pos[1] > BOTTOM_DIVIDER):
 
                 # Change the x/y screen coordinates to grid coordinates
@@ -138,11 +255,11 @@ while not done:
                 row = pos[1] // (HEIGHT + MARGIN)
 
                 if (column == 0):
-                    if(remove_node_mode):
+                    if(REMOVE_NODE_MODE):
                         print("Remove Mode: OFF")
                     else:
                         print("Remove Mode: ON")
-                    remove_node_mode = not remove_node_mode
+                    REMOVE_NODE_MODE = not REMOVE_NODE_MODE
 
                 elif (column == 1):
                     resetGrid()
@@ -159,53 +276,16 @@ while not done:
                     
                 elif (column == 2):
                     resetGrid()
-
+            
+            # CLICK SIDE GRID                   
             elif ((pos[0] // MARGIN) % ((WIDTH + MARGIN) / MARGIN) == 0):
-                row = pos[1] // (HEIGHT + MARGIN)
-                column = int((pos[0] // MARGIN) // ((WIDTH + MARGIN) / MARGIN))
-
-                print("Click side", pos, "Grid coordinates: ", row, column)
-                if (side_grid[row][column] == 0):
-                    side_grid[row][column] = 1
-                    if (column > 0 and column < GRID_SIZE):
-                        cell1 = gridToNumber(row, column)
-                        cell2 = gridToNumber(row, column-1)
-                        print("Removing Edges: {} and {}".format(cell1, cell2))
-                        G.removeEdges(cell1, cell2)
-                else:
-                    side_grid[row][column] = 0
-                    if (column > 0 and column < GRID_SIZE):
-                        cell1 = gridToNumber(row, column)
-                        cell2 = gridToNumber(row, column-1)
-                        if(isNodeRemoved(row, column) or isNodeRemoved(row, column-1)):
-                            print("Node unavailable")
-                        else:
-                            print("Adding Edges: {} and {}".format(cell1, cell2))
-                            G.add(cell1, cell2)
-                               
+                handleSideGrid(pos)
+            
+            # CLICK BOTTOM GRID                   
             elif ((pos[1] // MARGIN) % ((HEIGHT + MARGIN) / MARGIN) == 0):
-                row = int((pos[1] // MARGIN) // ((HEIGHT + MARGIN) / MARGIN))
-                column = pos[0] // (WIDTH + MARGIN)
+                handleBottomGrid(pos)
 
-                print("Click bottom", pos, "Grid coordinates: ", row, column)
-                if (bottom_grid[row][column] == 0):
-                    bottom_grid[row][column] = 1
-                    if (row > 0 and row < GRID_SIZE):
-                        cell1 = gridToNumber(row, column)
-                        cell2 = gridToNumber(row-1, column)
-                        print("Removing Edges: {} and {}".format(cell1, cell2))
-                        G.removeEdges(cell1, cell2)
-                else:
-                    bottom_grid[row][column] = 0
-                    if (row > 0 and row < GRID_SIZE):
-                        cell1 = gridToNumber(row, column)
-                        cell2 = gridToNumber(row-1, column)
-                        if(isNodeRemoved(row, column) or isNodeRemoved(row-1, column)):
-                            print("Node unavailable")
-                        else:
-                            print("Adding Edges: {} and {}".format(cell1, cell2))
-                            G.add(cell1, cell2)
-
+            # CLICKED GRID
             else:
                 # Change the x/y screen coordinates to grid coordinates
                 column = pos[0] // (WIDTH + MARGIN)
@@ -214,17 +294,15 @@ while not done:
                 # Set that location to one
                 print("Click ", pos, "Grid coordinates: ", row, column)
                 if (grid[row][column] == 0):
-                    if (remove_node_mode):
+                    if (REMOVE_NODE_MODE):
                         grid[row][column] = 3
                         G.removeNode(gridToNumber(row,column))
-                        print(G)
                     else:
                         grid[row][column] = 2
                     cell = gridToNumber(row, column)
                 else:
                     if (grid[row][column] == 3):
                         addNode(row, column)
-                        print(G)
                     elif (grid[row][column] == 2):
                         print("do something")
 
@@ -277,16 +355,17 @@ while not done:
                               WIDTH,
                               MARGIN])
     
-    pygame.draw.rect(screen, (255,0,255), [MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
-    pygame.draw.rect(screen, (138,43,226), [(MARGIN + WIDTH) + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
-    pygame.draw.rect(screen, (128,0,128), [(MARGIN + WIDTH) * 2 + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Add reset button
+    pygame.draw.rect(screen, RED, [MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # REMOVE_NODE_MODE button
+    pygame.draw.rect(screen, BLUE, [(MARGIN + WIDTH) + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Hamiltonian button
+    pygame.draw.rect(screen, WHITE, [(MARGIN + WIDTH) * 2 + MARGIN, BOTTOM_DIVIDER + MARGIN, WIDTH, HEIGHT]) # Reset button
 
     if (len(solution_array) > 0):
         # print(solution_array)
         current_item = solution_array.pop(0)
-        current_item_row, current_item_col = numberToGrid(current_item)
-        grid[current_item_row][current_item_col] = 1
-        time.sleep(0.2)
+        if (current_item >= 0):
+            current_item_row, current_item_col = numberToGrid(current_item)
+            grid[current_item_row][current_item_col] = 1
+            time.sleep(0.2)
 
  
     # Limit to 60 frames per second
